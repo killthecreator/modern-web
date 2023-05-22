@@ -1,14 +1,66 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-import { api } from "~/utils/api";
+dayjs.extend(relativeTime);
+
+import { RouterOutputs, api } from "~/utils/api";
+
+const CreatePostWizard = () => {
+  const { user } = useUser();
+  if (!user) return null;
+
+  return (
+    <div className="flex w-full gap-3">
+      <img
+        src={user.profileImageUrl}
+        alt="user-image"
+        className="h-14 w-14 rounded-full"
+      />
+      <input
+        placeholder="Type some emojis!"
+        type="text"
+        className="grow bg-transparent outline-none"
+      />
+    </div>
+  );
+};
+
+type PostWithUser = RouterOutputs["posts"]["getAll"][number];
+const PostView = (props: PostWithUser) => {
+  const { post, author } = props;
+
+  return (
+    <li
+      className="flex items-center gap-3 border-b border-slate-400 p-4"
+      key={post.id}
+    >
+      <img
+        className="h-14 w-14 rounded-full"
+        src={author.profileImageUrl}
+        alt="profile-pic"
+      />
+      <div className="flex flex-col">
+        <div className="flex gap-1 font-bold text-slate-300">
+          <span>{`@${author.username}`}</span>
+          <span>·</span>
+          <span className="font-thin">{dayjs(post.createdAt).fromNow()}</span>
+        </div>
+        <span> {post.content}</span>
+      </div>
+    </li>
+  );
+};
 
 const Home: NextPage = () => {
   const user = useUser();
 
-  const { data } = api.posts.getAll.useQuery();
+  const { data, isLoading } = api.posts.getAll.useQuery();
+  if (isLoading) return <p>Loading...</p>;
 
+  if (!data) return <p>Opps... Something went wrong</p>;
   return (
     <>
       <Head>
@@ -16,13 +68,17 @@ const Home: NextPage = () => {
         <meta name="description" content="Modern Web Tutorial" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b text-black">
-        <div>{!user.isSignedIn ? <SignInButton /> : <SignOutButton />}</div>
-        <SignIn path="/sign-in" routing="path" signUpUrl="/sign-up" />
-        <div>
-          {data?.map((post) => (
-            <div key={post.id}>{post.content}</div>
-          ))}
+      <main className="flex h-screen justify-center">
+        <div className="w-full border-x  border-slate-400 md:max-w-2xl">
+          <div className="flex border-b border-slate-400 p-4">
+            {!user.isSignedIn ? <SignInButton /> : <CreatePostWizard />}
+          </div>
+          <SignIn path="/sign-in" routing="path" signUpUrl="/sign-up" />
+          <ul className="flex flex-col">
+            {data.map((fullPost) => (
+              <PostView key={fullPost.post.id} {...fullPost} />
+            ))}
+          </ul>
         </div>
       </main>
     </>
