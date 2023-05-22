@@ -8,11 +8,11 @@ import Image from "next/image";
 dayjs.extend(relativeTime);
 
 import { type RouterOutputs, api } from "~/utils/api";
+import { LoadingPage } from "~/components/loading";
 
 const CreatePostWizard = () => {
   const { user } = useUser();
   if (!user) return null;
-
   return (
     <div className="flex w-full gap-3">
       <Image
@@ -59,13 +59,23 @@ const PostView = (props: PostWithUser) => {
   );
 };
 
-const Home: NextPage = () => {
-  const user = useUser();
-
+const Feed = () => {
   const { data, isLoading } = api.posts.getAll.useQuery();
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading) return <LoadingPage />;
 
   if (!data) return <p>Opps... Something went wrong</p>;
+
+  return (
+    <ul className="flex flex-col">
+      {data.map((fullPost) => (
+        <PostView key={fullPost.post.id} {...fullPost} />
+      ))}
+    </ul>
+  );
+};
+
+const Home: NextPage = () => {
+  const { isSignedIn } = useUser();
   return (
     <>
       <Head>
@@ -74,16 +84,12 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex h-screen justify-center">
-        <div className="w-full border-x  border-slate-400 md:max-w-2xl">
+        <div className="relative w-full  border-x border-slate-400 md:max-w-2xl">
           <div className="flex border-b border-slate-400 p-4">
-            {!user.isSignedIn ? <SignInButton /> : <CreatePostWizard />}
+            {!isSignedIn ? <SignInButton /> : <CreatePostWizard />}
           </div>
           <SignIn path="/sign-in" routing="path" signUpUrl="/sign-up" />
-          <ul className="flex flex-col">
-            {data.map((fullPost) => (
-              <PostView key={fullPost.post.id} {...fullPost} />
-            ))}
-          </ul>
+          <Feed />
         </div>
       </main>
     </>
