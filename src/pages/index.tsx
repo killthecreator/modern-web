@@ -1,12 +1,13 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
+import { SignIn, SignInButton, useUser } from "@clerk/nextjs";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import Image from "next/image";
 
 dayjs.extend(relativeTime);
 
-import { RouterOutputs, api } from "~/utils/api";
+import { type RouterOutputs, api } from "~/utils/api";
 
 const CreatePostWizard = () => {
   const { user } = useUser();
@@ -14,10 +15,12 @@ const CreatePostWizard = () => {
 
   return (
     <div className="flex w-full gap-3">
-      <img
+      <Image
         src={user.profileImageUrl}
         alt="user-image"
-        className="h-14 w-14 rounded-full"
+        className="rounded-full"
+        width="56"
+        height="56"
       />
       <input
         placeholder="Type some emojis!"
@@ -37,8 +40,10 @@ const PostView = (props: PostWithUser) => {
       className="flex items-center gap-3 border-b border-slate-400 p-4"
       key={post.id}
     >
-      <img
-        className="h-14 w-14 rounded-full"
+      <Image
+        width="56"
+        height="56"
+        className=" rounded-full"
         src={author.profileImageUrl}
         alt="profile-pic"
       />
