@@ -8,6 +8,7 @@ import { useState } from "react";
 
 import { type RouterOutputs, api } from "~/utils/api";
 import { LoadingPage } from "~/components/loading";
+import { toast } from "react-hot-toast";
 
 dayjs.extend(relativeTime);
 
@@ -21,6 +22,14 @@ const CreatePostWizard = () => {
     onSuccess: () => {
       setInputVal("");
       void ctx.posts.invalidate();
+    },
+    onError: (e) => {
+      const errorMessage = e.data?.zodError?.fieldErrors.content;
+      if (errorMessage && errorMessage[0]) {
+        toast.error(errorMessage[0]);
+      } else {
+        toast.error("Failed to post. Try again later");
+      }
     },
   });
 
@@ -42,7 +51,19 @@ const CreatePostWizard = () => {
         onChange={(e) => setInputVal(e.target.value)}
         disabled={isPosting}
       />
-      <button onClick={() => mutate({ content: inputVal })}>Post</button>
+      {inputVal !== "" && !isPosting && (
+        <button
+          onClick={() => mutate({ content: inputVal })}
+          disabled={isPosting}
+        >
+          Post
+        </button>
+      )}
+      {isPosting && (
+        <div className="relative">
+          <LoadingPage />
+        </div>
+      )}
     </div>
   );
 };
