@@ -4,14 +4,19 @@ import { SignIn, SignInButton, useUser } from "@clerk/nextjs";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Image from "next/image";
-
-dayjs.extend(relativeTime);
+import { useState } from "react";
 
 import { type RouterOutputs, api } from "~/utils/api";
 import { LoadingPage } from "~/components/loading";
 
+dayjs.extend(relativeTime);
+
 const CreatePostWizard = () => {
   const { user } = useUser();
+
+  const [inputVal, setInputVal] = useState("");
+  const { mutate } = api.posts.create.useMutation();
+
   if (!user) return null;
   return (
     <div className="flex w-full gap-3">
@@ -26,7 +31,9 @@ const CreatePostWizard = () => {
         placeholder="Type some emojis!"
         type="text"
         className="grow bg-transparent outline-none"
+        onChange={(e) => setInputVal(e.currentTarget.value)}
       />
+      <button onSubmit={() => mutate({ content: inputVal })}>Post</button>
     </div>
   );
 };
@@ -53,7 +60,7 @@ const PostView = (props: PostWithUser) => {
           <span>·</span>
           <span className="font-thin">{dayjs(post.createdAt).fromNow()}</span>
         </div>
-        <span> {post.content}</span>
+        <span className="text-2xl"> {post.content}</span>
       </div>
     </li>
   );
