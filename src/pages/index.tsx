@@ -13,9 +13,16 @@ dayjs.extend(relativeTime);
 
 const CreatePostWizard = () => {
   const { user } = useUser();
-
   const [inputVal, setInputVal] = useState("");
-  const { mutate } = api.posts.create.useMutation();
+
+  const ctx = api.useContext();
+
+  const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
+    onSuccess: () => {
+      setInputVal("");
+      void ctx.posts.invalidate();
+    },
+  });
 
   if (!user) return null;
   return (
@@ -31,9 +38,11 @@ const CreatePostWizard = () => {
         placeholder="Type some emojis!"
         type="text"
         className="grow bg-transparent outline-none"
-        onChange={(e) => setInputVal(e.currentTarget.value)}
+        value={inputVal}
+        onChange={(e) => setInputVal(e.target.value)}
+        disabled={isPosting}
       />
-      <button onSubmit={() => mutate({ content: inputVal })}>Post</button>
+      <button onClick={() => mutate({ content: inputVal })}>Post</button>
     </div>
   );
 };
