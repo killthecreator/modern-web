@@ -24,9 +24,14 @@ const ProfilePosts = ({ userId }: { userId: string }) => {
 const profilePicSize = 128;
 
 const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
-  const { data } = api.profile.getUserByUsername.useQuery({
-    username,
-  });
+  const { data } = api.profile.getUserByUsername.useQuery(
+    {
+      username,
+    },
+    {
+      refetchInterval: 5000,
+    }
+  );
 
   if (!data) return <div>404</div>;
   return (

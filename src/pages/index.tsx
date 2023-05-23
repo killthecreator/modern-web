@@ -68,9 +68,10 @@ const CreatePostWizard = () => {
 };
 
 const Feed = () => {
-  const { data, isLoading } = api.posts.getAll.useQuery();
+  const { data, isLoading } = api.posts.getAll.useQuery(undefined, {
+    refetchInterval: 5000,
+  });
   if (isLoading) return <LoadingPage />;
-
   if (!data) return <p>Opps... Something went wrong</p>;
 
   return (
