@@ -18,7 +18,7 @@ const SinglePostPage: NextPage<{ id: string }> = ({ id }) => {
         <title>{`${data.post.content} - @ ${data.author.username}`}</title>
       </Head>
       <PageLayout>
-        <PostView {...data} />
+        <PostView {...data} full={true} />
       </PageLayout>
     </>
   );

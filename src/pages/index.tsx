@@ -10,6 +10,8 @@ import { LoadingPage } from "~/components/loading";
 import { toast } from "react-hot-toast";
 import { PageLayout } from "~/components/layout";
 import PostView from "~/components/postWithUser";
+import { Button, Separator } from "~/components/ui";
+import { Send } from "lucide-react";
 
 const CreatePostWizard = () => {
   const { user } = useUser();
@@ -34,32 +36,36 @@ const CreatePostWizard = () => {
 
   if (!user) return null;
   return (
-    <div className="flex w-full gap-3">
-      <Image
-        src={user.profileImageUrl}
-        alt="user-image"
-        className="rounded-full"
-        width="56"
-        height="56"
-      />
+    <div className="flex w-full items-center gap-3">
+      {
+        <Image
+          src={user.profileImageUrl}
+          alt="user-image"
+          className="rounded-full"
+          width="56"
+          height="56"
+        />
+      }
+
       <input
-        placeholder="Type some emojis!"
+        placeholder="Type something!"
         type="text"
-        className="grow bg-transparent outline-none"
+        className="grow bg-transparent text-slate-950 outline-none"
         value={inputVal}
         onChange={(e) => setInputVal(e.target.value)}
         disabled={isPosting}
       />
       {inputVal !== "" && !isPosting && (
-        <button
+        <Button
+          className="flex items-center gap-2"
           onClick={() => mutate({ content: inputVal })}
-          disabled={isPosting}
         >
-          Post
-        </button>
+          <Send />
+          <span>Post</span>
+        </Button>
       )}
       {isPosting && (
-        <div className="relative">
+        <div className="relative right-11">
           <LoadingPage />
         </div>
       )}
@@ -75,9 +81,13 @@ const Feed = () => {
   if (!data) return <p>Opps... Something went wrong</p>;
 
   return (
-    <ul className="flex flex-col">
-      {data.map((fullPost) => (
-        <PostView key={fullPost.post.id} {...fullPost} />
+    <ul>
+      {data.map((fullPost, index) => (
+        <PostView
+          key={fullPost.post.id}
+          {...fullPost}
+          separator={index !== data.length - 1}
+        />
       ))}
     </ul>
   );
@@ -91,7 +101,7 @@ const Home: NextPage = () => {
         <title>Homepage</title>
       </Head>
       <PageLayout>
-        <div className="flex border-b border-slate-400 p-4">
+        <div className="flex rounded-lg p-4 shadow-lg">
           {!isSignedIn && (
             <div className="flex justify-center">
               <SignInButton />

@@ -14,8 +14,12 @@ const ProfilePosts = ({ userId }: { userId: string }) => {
 
   return (
     <ul>
-      {data.map((fullPost) => (
-        <PostView key={fullPost.post.id} {...fullPost} />
+      {data.map((fullPost, index) => (
+        <PostView
+          key={fullPost.post.id}
+          {...fullPost}
+          separator={index !== data.length - 1}
+        />
       ))}
     </ul>
   );
@@ -40,7 +44,7 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
         <title>{data.username}</title>
       </Head>
       <PageLayout>
-        <div className="relative h-36 border-b border-slate-400 bg-slate-600">
+        <div className="relative h-36 bg-slate-600">
           <Image
             className="absolute bottom-0 left-0 ml-4 translate-y-1/2 rounded-full border-2 border-black"
             src={data.profileImageUrl}
@@ -51,10 +55,10 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
         </div>
         <div className="h-[64px]"></div>
 
-        <div className="p-4 text-2xl font-bold">{`@${
+        <div className="p-4 text-2xl font-bold text-slate-950">{`@${
           data.username ?? ""
         }`}</div>
-        <div className="w-full border-b border-slate-400"></div>
+        <div className="w-full"></div>
         <ProfilePosts userId={data.id} />
       </PageLayout>
     </>
