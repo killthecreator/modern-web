@@ -6,6 +6,25 @@ import { prisma } from "~/server/db";
 import { appRouter } from "~/server/api/root";
 import superjson from "superjson";
 import { PageLayout } from "~/components/layout";
+import Image from "next/image";
+import { LoadingPage } from "~/components/loading";
+import PostView from "~/components/postWithUser";
+
+const ProfilePosts = ({ userId }: { userId: string }) => {
+  const { data, isLoading } = api.posts.getPostsByUserId.useQuery({ userId });
+  if (isLoading) return <LoadingPage />;
+  if (!data || data.length === 0) return <div>No posts by this user</div>;
+
+  return (
+    <ul>
+      {data.map((fullPost) => (
+        <PostView key={fullPost.post.id} {...fullPost} />
+      ))}
+    </ul>
+  );
+};
+
+const profilePicSize = 128;
 
 const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
   const { data } = api.profile.getUserByUsername.useQuery({
@@ -18,7 +37,24 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
       <Head>
         <title>{data.username}</title>
       </Head>
-      <PageLayout> {<div>{data.username}</div>}</PageLayout>
+      <PageLayout>
+        <div className="relative h-36 border-b border-slate-400 bg-slate-600">
+          <Image
+            className="absolute bottom-0 left-0 ml-4 translate-y-1/2 rounded-full border-2 border-black"
+            src={data.profileImageUrl}
+            height={profilePicSize}
+            width={profilePicSize}
+            alt="profile-pic"
+          />
+        </div>
+        <div className="h-[64px]"></div>
+
+        <div className="p-4 text-2xl font-bold">{`@${
+          data.username ?? ""
+        }`}</div>
+        <div className="w-full border-b border-slate-400"></div>
+        <ProfilePosts userId={data.id} />
+      </PageLayout>
     </>
   );
 };
@@ -49,7 +85,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
 };
 
 export const getStaticPaths = () => {
-  return { paths: [], fallback: false };
+  return { paths: [], fallback: "blocking" };
 };
 
 export default ProfilePage;
