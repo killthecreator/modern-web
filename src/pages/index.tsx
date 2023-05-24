@@ -9,7 +9,16 @@ import { api } from "~/utils/api";
 import { LoadingPage } from "~/components/loading";
 import { PageLayout } from "~/components/layout";
 import PostView from "~/components/postWithUser";
-import { Button, Separator, Textarea, useToast } from "~/components/ui";
+import {
+  Button,
+  Separator,
+  Textarea,
+  useToast,
+  Alert,
+  AlertTitle,
+  AlertDescription,
+  Input,
+} from "~/components/ui";
 import { Send } from "lucide-react";
 
 const CreatePostWizard = () => {
@@ -35,7 +44,10 @@ const CreatePostWizard = () => {
     },
   });
 
+  const { mutate: setUsername } = api.profile.updateUsername.useMutation();
+
   if (!user) return null;
+
   return (
     <div className="flex w-full items-center gap-3">
       {
@@ -67,6 +79,31 @@ const CreatePostWizard = () => {
       ) : (
         <div className="w-[125px]">
           <LoadingPage />
+        </div>
+      )}
+      {!user.username && (
+        <div className="fixed left-0 top-0 z-50 flex h-screen w-screen items-center justify-center bg-background/80 backdrop-blur-sm transition-opacity animate-in fade-in">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setUsername({ id: user.id, username: e.target[0].value });
+            }}
+          >
+            <Alert
+              className="flex max-w-[400px] flex-col 
+            gap-4 "
+            >
+              <AlertTitle>Username was not provided</AlertTitle>
+              <AlertDescription className="">
+                We could not catch a username from your authentification method.
+                Please provide it below
+              </AlertDescription>
+              <Input placeholder="Username"></Input>
+              <Button type="submit" className="w-36 self-center">
+                Submit
+              </Button>
+            </Alert>
+          </form>
         </div>
       )}
     </div>

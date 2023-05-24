@@ -4,3 +4,6 @@ export * from "./textarea";
 export * from "./toast";
 export * from "./use-toast";
 export * from "./toaster";
+export * from "./dialog";
+export * from "./alert";
+export * from "./input";
