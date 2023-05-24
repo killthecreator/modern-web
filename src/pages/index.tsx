@@ -21,8 +21,27 @@ import {
 } from "~/components/ui";
 import { Send } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/router";
 
-/* REFETCH */
+const PostSearcher = () => {
+  type SearchFormData = { search: string };
+  const { register, handleSubmit } = useForm<SearchFormData>();
+  const router = useRouter();
+
+  const onSubmit = async ({ search }: SearchFormData) => {
+    await router.push({ pathname: "search", query: { result: search } });
+  };
+
+  return (
+    <form
+      className="flex w-full items-center gap-3 p-4"
+      onSubmit={handleSubmit(onSubmit)}
+    >
+      <Input {...register("search")} placeholder="Search for posts" />
+      <Button type="submit">Search</Button>
+    </form>
+  );
+};
 
 const CreatePostWizard = () => {
   const { user } = useUser();
@@ -140,6 +159,7 @@ const Home: NextPage = () => {
         <title>Homepage</title>
       </Head>
       <PageLayout>
+        <PostSearcher />
         <div className="flex rounded-lg p-4 shadow-lg">
           {!isSignedIn && (
             <div className="flex justify-center">
