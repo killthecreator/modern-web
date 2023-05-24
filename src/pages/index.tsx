@@ -20,7 +20,7 @@ import {
   Input,
 } from "~/components/ui";
 import { Send } from "lucide-react";
-import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 /* REFETCH */
 
@@ -32,6 +32,7 @@ const CreatePostWizard = () => {
 
   type UsernameFormData = { username: string };
   const { register, handleSubmit } = useForm<UsernameFormData>();
+  const { mutate: updateUser } = api.profile.updateUsername.useMutation();
 
   const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
     onSuccess: () => {
@@ -51,14 +52,8 @@ const CreatePostWizard = () => {
 
   if (!user) return null;
 
-  const onSubmit = async ({ username }: UsernameFormData) => {
-    try {
-      await user.update({
-        username,
-      });
-    } catch (e) {
-      console.log(e);
-    }
+  const onSubmit = ({ username }: UsernameFormData) => {
+    updateUser({ id: user.id, username });
   };
 
   return (
