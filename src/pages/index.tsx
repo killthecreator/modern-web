@@ -20,13 +20,18 @@ import {
   Input,
 } from "~/components/ui";
 import { Send } from "lucide-react";
+import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+
+/* REFETCH */
 
 const CreatePostWizard = () => {
   const { user } = useUser();
   const [inputVal, setInputVal] = useState("");
-
   const ctx = api.useContext();
   const { toast } = useToast();
+
+  type UsernameFormData = { username: string };
+  const { register, handleSubmit } = useForm<UsernameFormData>();
 
   const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
     onSuccess: () => {
@@ -44,9 +49,17 @@ const CreatePostWizard = () => {
     },
   });
 
-  const { mutate: setUsername } = api.profile.updateUsername.useMutation();
-
   if (!user) return null;
+
+  const onSubmit = async ({ username }: UsernameFormData) => {
+    try {
+      await user.update({
+        username,
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   return (
     <div className="flex w-full items-center gap-3">
@@ -83,14 +96,7 @@ const CreatePostWizard = () => {
       )}
       {!user.username && (
         <div className="fixed left-0 top-0 z-50 flex h-screen w-screen items-center justify-center bg-background/80 backdrop-blur-sm transition-opacity animate-in fade-in">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const formData = new FormData(e.currentTarget);
-              const username = formData.get("username") as string;
-              setUsername({ id: user.id, username: username });
-            }}
-          >
+          <form onSubmit={handleSubmit(onSubmit)}>
             <Alert
               className="flex max-w-[400px] flex-col 
             gap-4 "
@@ -100,7 +106,7 @@ const CreatePostWizard = () => {
                 We could not catch a username from your authentification method.
                 Please provide it below
               </AlertDescription>
-              <Input name="username" placeholder="Username"></Input>
+              <Input {...register("username")} placeholder="Username"></Input>
               <Button type="submit" className="w-36 self-center">
                 Submit
               </Button>
