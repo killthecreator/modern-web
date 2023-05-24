@@ -86,7 +86,9 @@ const CreatePostWizard = () => {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              setUsername({ id: user.id, username: e.target[0].value });
+              const formData = new FormData(e.currentTarget);
+              const username = formData.get("username") as string;
+              setUsername({ id: user.id, username: username });
             }}
           >
             <Alert
@@ -98,7 +100,7 @@ const CreatePostWizard = () => {
                 We could not catch a username from your authentification method.
                 Please provide it below
               </AlertDescription>
-              <Input placeholder="Username"></Input>
+              <Input name="username" placeholder="Username"></Input>
               <Button type="submit" className="w-36 self-center">
                 Submit
               </Button>
