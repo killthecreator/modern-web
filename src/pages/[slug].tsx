@@ -6,6 +6,7 @@ import Image from "next/image";
 import { LoadingPage } from "~/components/loading";
 import PostView from "~/components/postWithUser";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
+import { Separator } from "~/components/ui";
 
 const ProfilePosts = ({ userId }: { userId: string }) => {
   const { data, isLoading } = api.posts.getPostsByUserId.useQuery({ userId });
@@ -15,11 +16,10 @@ const ProfilePosts = ({ userId }: { userId: string }) => {
   return (
     <ul>
       {data.map((fullPost, index) => (
-        <PostView
-          key={fullPost.post.id}
-          {...fullPost}
-          separator={index !== data.length - 1}
-        />
+        <li key={fullPost.post.id}>
+          <PostView {...fullPost} />
+          {index !== data.length - 1 && <Separator />}
+        </li>
       ))}
     </ul>
   );

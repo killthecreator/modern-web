@@ -7,10 +7,9 @@ import { useState } from "react";
 
 import { api } from "~/utils/api";
 import { LoadingPage } from "~/components/loading";
-import { toast } from "react-hot-toast";
 import { PageLayout } from "~/components/layout";
 import PostView from "~/components/postWithUser";
-import { Button, Separator } from "~/components/ui";
+import { Button, Separator, Textarea, useToast } from "~/components/ui";
 import { Send } from "lucide-react";
 
 const CreatePostWizard = () => {
@@ -18,6 +17,7 @@ const CreatePostWizard = () => {
   const [inputVal, setInputVal] = useState("");
 
   const ctx = api.useContext();
+  const { toast } = useToast();
 
   const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
     onSuccess: () => {
@@ -26,11 +26,12 @@ const CreatePostWizard = () => {
     },
     onError: (e) => {
       const errorMessage = e.data?.zodError?.fieldErrors.content;
-      if (errorMessage && errorMessage[0]) {
-        toast.error(errorMessage[0]);
-      } else {
-        toast.error("Failed to post. Try again later");
-      }
+      toast({
+        title:
+          errorMessage && errorMessage[0]
+            ? errorMessage[0]
+            : "Failed to post. Try again later",
+      });
     },
   });
 
@@ -47,25 +48,24 @@ const CreatePostWizard = () => {
         />
       }
 
-      <input
+      <Textarea
         placeholder="Type something!"
-        type="text"
         className="grow bg-transparent text-slate-950 outline-none"
         value={inputVal}
         onChange={(e) => setInputVal(e.target.value)}
         disabled={isPosting}
       />
-      {inputVal !== "" && !isPosting && (
+      {!isPosting ? (
         <Button
           className="flex items-center gap-2"
           onClick={() => mutate({ content: inputVal })}
+          disabled={!inputVal}
         >
           <Send />
           <span>Post</span>
         </Button>
-      )}
-      {isPosting && (
-        <div className="relative right-11">
+      ) : (
+        <div className="w-[125px]">
           <LoadingPage />
         </div>
       )}
@@ -83,11 +83,10 @@ const Feed = () => {
   return (
     <ul>
       {data.map((fullPost, index) => (
-        <PostView
-          key={fullPost.post.id}
-          {...fullPost}
-          separator={index !== data.length - 1}
-        />
+        <li key={fullPost.post.id}>
+          <PostView {...fullPost} />
+          {index !== data.length - 1 && <Separator />}
+        </li>
       ))}
     </ul>
   );
