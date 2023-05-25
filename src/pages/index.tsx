@@ -3,7 +3,7 @@ import Head from "next/head";
 import { SignInButton, useUser } from "@clerk/nextjs";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 import { api } from "~/utils/api";
 import { LoadingPage } from "~/components/loading";
@@ -11,7 +11,6 @@ import { PageLayout } from "~/components/layout";
 import PostView from "~/components/postWithUser";
 import {
   Button,
-  Separator,
   Textarea,
   useToast,
   Alert,
@@ -22,6 +21,7 @@ import {
 import { Send } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
+import { useIntersectionObserver } from "~/utils/hooks";
 
 const PostSearcher = () => {
   type SearchFormData = { search: string };
@@ -34,7 +34,7 @@ const PostSearcher = () => {
 
   return (
     <form
-      className="flex w-full items-center gap-3 p-4"
+      className="flex w-full items-center gap-3 p-4 shadow"
       onSubmit={handleSubmit(onSubmit)}
     >
       <Input {...register("search")} placeholder="Search for posts" />
@@ -78,7 +78,7 @@ const CreatePostWizard = () => {
   };
 
   return (
-    <div className="flex w-full items-center  gap-3">
+    <div className="flex w-full items-center gap-3">
       {
         <Image
           src={user.profileImageUrl}
@@ -135,21 +135,54 @@ const CreatePostWizard = () => {
 };
 
 const Feed = () => {
-  const { data, isLoading } = api.posts.getAll.useQuery(undefined, {
-    refetchInterval: 5000,
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    api.posts.getAll.useInfiniteQuery(
+      { limit: 10 },
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        refetchInterval: 5000,
+      }
+    );
+
+  const loadTrigger = useRef<HTMLUListElement>(null);
+  const entry = useIntersectionObserver(loadTrigger, {
+    threshold: 1,
   });
+  const isVisible = !!entry?.isIntersecting;
+
+  const loadMorePosts = useCallback(async () => {
+    await fetchNextPage();
+  }, [fetchNextPage]);
+
+  useEffect(() => {
+    if (isVisible && hasNextPage) {
+      void loadMorePosts();
+    }
+  }, [isVisible, loadMorePosts, hasNextPage]);
+
   if (isLoading) return <LoadingPage />;
   if (!data) return <p>Opps... Something went wrong</p>;
 
+  const curLoadedPosts = [
+    ...data.pages.map((page) => page.postsWithUserdata),
+  ].flat();
+
   return (
-    <ul>
-      {data.map((fullPost, index) => (
-        <li key={fullPost.post.id}>
-          <PostView {...fullPost} />
-          {index !== data.length - 1 && <Separator />}
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul className="mt-[200px] h-min">
+        {curLoadedPosts.map((fullPost) => (
+          <li key={fullPost.post.id}>
+            <PostView {...fullPost} />
+          </li>
+        ))}
+      </ul>
+      <span className="h-1 w-full " ref={loadTrigger}></span>
+      {isFetchingNextPage && (
+        <div className="my-10">
+          <LoadingPage />
+        </div>
+      )}
+    </>
   );
 };
 
@@ -161,15 +194,17 @@ const Home: NextPage = () => {
         <title>Homepage</title>
       </Head>
       <PageLayout>
-        <PostSearcher />
-        <div className="flex justify-center rounded-lg p-4 shadow-lg">
-          {isSignedIn ? (
-            <CreatePostWizard />
-          ) : (
-            <SignInButton>
-              <Button>Sign In</Button>
-            </SignInButton>
-          )}
+        <div className="fixed z-10 w-full bg-white/95  md:max-w-2xl">
+          <PostSearcher />
+          <div className="flex justify-center rounded-lg p-4 shadow-md">
+            {isSignedIn ? (
+              <CreatePostWizard />
+            ) : (
+              <SignInButton>
+                <Button>Sign In</Button>
+              </SignInButton>
+            )}
+          </div>
         </div>
         <Feed />
       </PageLayout>

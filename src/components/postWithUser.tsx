@@ -7,7 +7,8 @@ import { cn } from "~/lib/utils";
 import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
 
-type PostWithUser = RouterOutputs["posts"]["getAll"][number];
+type PostWithUser =
+  RouterOutputs["posts"]["getAll"]["postsWithUserdata"][number];
 
 const PostView = ({
   post,
@@ -19,8 +20,8 @@ const PostView = ({
       className={cn(
         "grid w-full grid-cols-[max-content,_1fr] gap-3 p-4",
         full
-          ? "absolute left-0 top-0 translate-y-[calc(50vh_-_50%)]  shadow-lg"
-          : "relative hover:scale-105"
+          ? "absolute left-0 top-0 translate-y-[calc(50vh_-_50%)] shadow-xl"
+          : "relative shadow hover:scale-105"
       )}
       key={post.id}
     >
