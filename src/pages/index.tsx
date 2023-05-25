@@ -48,6 +48,7 @@ const CreatePostWizard = () => {
   const [inputVal, setInputVal] = useState("");
   const ctx = api.useContext();
   const { toast } = useToast();
+  const [isUsername, setIsUsername] = useState(!!user && !!user.username);
 
   type UsernameFormData = { username: string };
   const { register, handleSubmit } = useForm<UsernameFormData>();
@@ -73,10 +74,11 @@ const CreatePostWizard = () => {
 
   const onSubmit = ({ username }: UsernameFormData) => {
     updateUser({ id: user.id, username });
+    setIsUsername(true);
   };
 
   return (
-    <div className="flex w-full items-center gap-3">
+    <div className="flex w-full items-center justify-center gap-3">
       {
         <Image
           src={user.profileImageUrl}
@@ -108,7 +110,7 @@ const CreatePostWizard = () => {
           <LoadingPage />
         </div>
       )}
-      {!user.username && (
+      {!isUsername && (
         <div className="fixed left-0 top-0 z-50 flex h-screen w-screen items-center justify-center bg-background/80 backdrop-blur-sm transition-opacity animate-in fade-in">
           <form onSubmit={handleSubmit(onSubmit)}>
             <Alert
