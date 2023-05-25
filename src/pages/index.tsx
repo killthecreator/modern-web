@@ -78,7 +78,7 @@ const CreatePostWizard = () => {
   };
 
   return (
-    <div className="flex w-full items-center justify-center gap-3">
+    <div className="flex w-full items-center  gap-3">
       {
         <Image
           src={user.profileImageUrl}
@@ -162,13 +162,14 @@ const Home: NextPage = () => {
       </Head>
       <PageLayout>
         <PostSearcher />
-        <div className="flex rounded-lg p-4 shadow-lg">
-          {!isSignedIn && (
-            <div className="flex justify-center">
-              <SignInButton />
-            </div>
+        <div className="flex justify-center rounded-lg p-4 shadow-lg">
+          {isSignedIn ? (
+            <CreatePostWizard />
+          ) : (
+            <SignInButton>
+              <Button>Sign In</Button>
+            </SignInButton>
           )}
-          {isSignedIn && <CreatePostWizard />}
         </div>
         <Feed />
       </PageLayout>
