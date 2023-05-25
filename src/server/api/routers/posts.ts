@@ -1,7 +1,4 @@
-import { clerkClient } from "@clerk/nextjs/server";
 import { z } from "zod";
-import filterUserForClient from "~/server/helpers/filterUserForClient";
-
 import {
   createTRPCRouter,
   publicProcedure,
@@ -11,7 +8,8 @@ import { TRPCError } from "@trpc/server";
 
 import { Ratelimit } from "@upstash/ratelimit"; // for deno: see above
 import { Redis } from "@upstash/redis";
-import type { Post } from "@prisma/client";
+
+import { addUserDataToPosts } from "~/server/helpers/addUserDataToPosts";
 
 // Create a new ratelimiter, that allows 3 requests per 1 minute
 const ratelimit = new Ratelimit({
@@ -19,25 +17,6 @@ const ratelimit = new Ratelimit({
   limiter: Ratelimit.slidingWindow(3, "1 m"),
   analytics: true,
 });
-
-const addUserDataToPosts = async (posts: Post[]) => {
-  const users = (
-    await clerkClient.users.getUserList({
-      userId: posts.map((post) => post.authorId),
-      limit: 100,
-    })
-  ).map(filterUserForClient);
-
-  return posts.map((post) => {
-    const author = users.find((user) => user.id === post.authorId);
-    if (!author || !author.username)
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Author for post not found",
-      });
-    return { post, author: { ...author, username: author.username } };
-  });
-};
 
 export const postsRouter = createTRPCRouter({
   getPostById: publicProcedure
@@ -56,13 +35,12 @@ export const postsRouter = createTRPCRouter({
   getAll: publicProcedure
     .input(
       z.object({
-        limit: z.number().min(1).max(100).nullish(),
         cursor: z.string().nullish(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const limit = input.limit ?? 50;
       const { cursor } = input;
+      const limit = 10;
       const posts = await ctx.prisma.post.findMany({
         take: limit + 1,
         cursor: cursor ? { id: cursor } : undefined,
@@ -70,6 +48,10 @@ export const postsRouter = createTRPCRouter({
           createdAt: "desc",
         },
       });
+
+      if (!posts) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Posts not found" });
+      }
 
       let nextCursor: typeof cursor | undefined = undefined;
       if (posts.length > limit) {
@@ -85,17 +67,32 @@ export const postsRouter = createTRPCRouter({
     .input(
       z.object({
         userId: z.string(),
+        cursor: z.string().nullish(),
       })
     )
-    .query(async ({ ctx, input }) =>
-      ctx.prisma.post
-        .findMany({
-          where: { authorId: input.userId },
-          take: 100,
-          orderBy: [{ createdAt: "desc" }],
-        })
-        .then(addUserDataToPosts)
-    ),
+    .query(async ({ ctx, input }) => {
+      const { cursor, userId } = input;
+      const limit = 10;
+      const posts = await ctx.prisma.post.findMany({
+        where: { authorId: userId },
+        take: limit + 1,
+        cursor: cursor ? { id: cursor } : undefined,
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (!posts) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Posts not found" });
+      }
+
+      let nextCursor: typeof cursor | undefined = undefined;
+      if (posts.length > limit) {
+        const nextPost = posts.pop();
+        nextCursor = nextPost!.id;
+      }
+
+      const postsWithUserdata = await addUserDataToPosts(posts);
+      return { postsWithUserdata, nextCursor };
+    }),
   create: privateProcedure
     .input(
       z.object({

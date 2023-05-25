@@ -6,22 +6,57 @@ import Image from "next/image";
 import { LoadingPage } from "~/components/loading";
 import PostView from "~/components/postWithUser";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
-import { Separator } from "~/components/ui";
+import { useRef, useEffect, useCallback } from "react";
+import { useIntersectionObserver } from "~/utils/hooks";
 
 const ProfilePosts = ({ userId }: { userId: string }) => {
-  const { data, isLoading } = api.posts.getPostsByUserId.useQuery({ userId });
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    api.posts.getPostsByUserId.useInfiniteQuery(
+      { userId },
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      }
+    );
+
+  const loadTrigger = useRef<HTMLUListElement>(null);
+  const entry = useIntersectionObserver(loadTrigger, {
+    threshold: 1,
+  });
+  const isVisible = !!entry?.isIntersecting;
+
+  const loadMorePosts = useCallback(async () => {
+    await fetchNextPage();
+  }, [fetchNextPage]);
+
+  useEffect(() => {
+    if (isVisible && hasNextPage) {
+      void loadMorePosts();
+    }
+  }, [isVisible, loadMorePosts, hasNextPage]);
+
   if (isLoading) return <LoadingPage />;
-  if (!data || data.length === 0) return <div>No posts by this user</div>;
+  if (!data) return <p>Opps... Something went wrong</p>;
+
+  const curLoadedPosts = [
+    ...data.pages.map((page) => page.postsWithUserdata),
+  ].flat();
 
   return (
-    <ul>
-      {data.map((fullPost, index) => (
-        <li key={fullPost.post.id}>
-          <PostView {...fullPost} />
-          {index !== data.length - 1 && <Separator />}
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul className="mt-[280px] h-min">
+        {curLoadedPosts.map((fullPost) => (
+          <li key={fullPost.post.id}>
+            <PostView {...fullPost} />
+          </li>
+        ))}
+      </ul>
+      <span className="h-1 w-full " ref={loadTrigger}></span>
+      {isFetchingNextPage && (
+        <div className="my-10">
+          <LoadingPage />
+        </div>
+      )}
+    </>
   );
 };
 
@@ -44,21 +79,24 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
         <title>{data.username}</title>
       </Head>
       <PageLayout>
-        <div className="relative h-36 bg-slate-600">
-          <Image
-            className="absolute bottom-0 left-0 ml-4 translate-y-1/2 rounded-full border-2 border-black"
-            src={data.profileImageUrl}
-            height={profilePicSize}
-            width={profilePicSize}
-            alt="profile-pic"
-          />
-        </div>
-        <div className="h-[64px]"></div>
+        <div className="fixed z-10 w-full bg-white/95  shadow-md md:max-w-2xl">
+          <div className="relative h-36 bg-slate-600">
+            <Image
+              className="absolute bottom-0 left-0 ml-4 translate-y-1/2 rounded-full border-2 border-black"
+              src={data.profileImageUrl}
+              height={profilePicSize}
+              width={profilePicSize}
+              alt="profile-pic"
+            />
+          </div>
+          <div className="h-[64px]"></div>
 
-        <div className="p-4 text-2xl font-bold text-slate-950">{`@${
-          data.username ?? ""
-        }`}</div>
-        <div className="w-full"></div>
+          <div className="p-4 text-2xl font-bold text-slate-950">{`@${
+            data.username ?? ""
+          }`}</div>
+          <div className="w-full"></div>
+        </div>
+
         <ProfilePosts userId={data.id} />
       </PageLayout>
     </>

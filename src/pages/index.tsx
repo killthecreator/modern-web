@@ -137,10 +137,9 @@ const CreatePostWizard = () => {
 const Feed = () => {
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     api.posts.getAll.useInfiniteQuery(
-      { limit: 10 },
+      {},
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
-        refetchInterval: 5000,
       }
     );
 
