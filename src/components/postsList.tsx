@@ -4,6 +4,7 @@ import { cn } from "~/lib/utils";
 import { LoadingPage } from "./loading";
 
 import { forwardRef } from "react";
+import { FixedSizeList } from "react-window";
 
 type PostsWithUser = RouterOutputs["posts"]["getAll"]["postsWithUserdata"];
 
