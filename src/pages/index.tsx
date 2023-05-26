@@ -8,7 +8,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { api } from "~/utils/api";
 import { LoadingPage } from "~/components/loading";
 import { PageLayout } from "~/components/layout";
-import PostView from "~/components/postWithUser";
 import {
   Button,
   Textarea,
@@ -21,7 +20,7 @@ import {
 import { Send } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
-import { useIntersectionObserver } from "~/utils/hooks";
+import PostsList from "~/components/postsList";
 
 const PostSearcher = () => {
   type SearchFormData = { search: string };
@@ -143,21 +142,25 @@ const Feed = () => {
       }
     );
 
-  const loadTrigger = useRef<HTMLUListElement>(null);
-  const entry = useIntersectionObserver(loadTrigger, {
-    threshold: 1,
-  });
-  const isVisible = !!entry?.isIntersecting;
+  const loadTrigger = useRef<HTMLDivElement>(null);
 
   const loadMorePosts = useCallback(async () => {
     await fetchNextPage();
   }, [fetchNextPage]);
 
   useEffect(() => {
-    if (isVisible && hasNextPage) {
-      void loadMorePosts();
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry && entry.isIntersecting && hasNextPage && !isLoading) {
+        void loadMorePosts();
+      }
+    });
+    if (loadTrigger.current) {
+      observer.observe(loadTrigger.current);
     }
-  }, [isVisible, loadMorePosts, hasNextPage]);
+    return () => {
+      observer.disconnect();
+    };
+  }, [isLoading, hasNextPage, loadMorePosts]);
 
   if (isLoading) return <LoadingPage />;
   if (!data) return <p>Opps... Something went wrong</p>;
@@ -167,21 +170,12 @@ const Feed = () => {
   ].flat();
 
   return (
-    <>
-      <ul className="mt-[200px] h-min">
-        {curLoadedPosts.map((fullPost) => (
-          <li key={fullPost.post.id}>
-            <PostView {...fullPost} />
-          </li>
-        ))}
-      </ul>
-      <span className="h-1 w-full " ref={loadTrigger}></span>
-      {isFetchingNextPage && (
-        <div className="my-10">
-          <LoadingPage />
-        </div>
-      )}
-    </>
+    <PostsList
+      postsWithUser={curLoadedPosts}
+      className="mt-[200px]"
+      isFetchingNextPage={isFetchingNextPage}
+      ref={loadTrigger}
+    />
   );
 };
 

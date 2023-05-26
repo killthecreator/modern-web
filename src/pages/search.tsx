@@ -3,11 +3,10 @@ import Head from "next/head";
 import { api } from "~/utils/api";
 import { PageLayout } from "~/components/layout";
 
-import PostView from "~/components/postWithUser";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 import { LoadingPage } from "~/components/loading";
 import { useRef, useEffect, useCallback } from "react";
-import { useIntersectionObserver } from "~/utils/hooks";
+import PostsList from "~/components/postsList";
 
 const SearchPage: NextPage<{ content: string }> = ({ content }) => {
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -17,22 +16,25 @@ const SearchPage: NextPage<{ content: string }> = ({ content }) => {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
       }
     );
-
-  const loadTrigger = useRef<HTMLUListElement>(null);
-  const entry = useIntersectionObserver(loadTrigger, {
-    threshold: 1,
-  });
-  const isVisible = !!entry?.isIntersecting;
+  const loadTrigger = useRef<HTMLDivElement>(null);
 
   const loadMorePosts = useCallback(async () => {
     await fetchNextPage();
   }, [fetchNextPage]);
 
   useEffect(() => {
-    if (isVisible && hasNextPage) {
-      void loadMorePosts();
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry && entry.isIntersecting && hasNextPage && !isLoading) {
+        void loadMorePosts();
+      }
+    });
+    if (loadTrigger.current) {
+      observer.observe(loadTrigger.current);
     }
-  }, [isVisible, loadMorePosts, hasNextPage]);
+    return () => {
+      observer.disconnect();
+    };
+  }, [isLoading, hasNextPage, loadMorePosts]);
 
   if (isLoading) return <LoadingPage />;
   if (!data) return <p>Opps... Something went wrong</p>;
@@ -47,21 +49,11 @@ const SearchPage: NextPage<{ content: string }> = ({ content }) => {
         <title>{content}</title>
       </Head>
       <PageLayout>
-        <>
-          <ul className="h-min">
-            {curLoadedPosts.map((fullPost) => (
-              <li key={fullPost.post.id}>
-                <PostView {...fullPost} />
-              </li>
-            ))}
-          </ul>
-          <span className="h-1 w-full " ref={loadTrigger}></span>
-          {isFetchingNextPage && (
-            <div className="my-10">
-              <LoadingPage />
-            </div>
-          )}
-        </>
+        <PostsList
+          postsWithUser={curLoadedPosts}
+          isFetchingNextPage={isFetchingNextPage}
+          ref={loadTrigger}
+        />
       </PageLayout>
     </>
   );
