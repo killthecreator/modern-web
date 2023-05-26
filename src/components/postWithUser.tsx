@@ -37,7 +37,6 @@ const PostView = ({
           <Link
             href={`/${author.username}`}
             className="cursor-pointer hover:underline"
-            prefetch={false}
           >
             <span>{`@${author.username}`}</span>
           </Link>
@@ -48,11 +47,7 @@ const PostView = ({
         {full ? (
           <span className="break-words text-2xl">{post.content}</span>
         ) : (
-          <Link
-            href={`/post/${post.id}`}
-            className={"cursor-default truncate"}
-            prefetch={false}
-          >
+          <Link href={`/post/${post.id}`} className={"cursor-default truncate"}>
             <span className="cursor-pointer break-words  text-2xl hover:underline">
               {post.content}
             </span>

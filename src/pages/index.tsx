@@ -165,9 +165,9 @@ const Feed = () => {
   if (isLoading) return <LoadingPage />;
   if (!data) return <p>Opps... Something went wrong</p>;
 
-  const curLoadedPosts = [
-    ...data.pages.map((page) => page.postsWithUserdata),
-  ].flat();
+  const curLoadedPosts = [...data.pages.map((page) => page.postsWithUserdata)]
+    .flat()
+    .slice(-11);
 
   return (
     <PostsList

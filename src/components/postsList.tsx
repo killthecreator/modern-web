@@ -4,7 +4,7 @@ import { cn } from "~/lib/utils";
 import { LoadingPage } from "./loading";
 
 import { forwardRef } from "react";
-import { FixedSizeList } from "react-window";
+import List from "rc-virtual-list";
 
 type PostsWithUser = RouterOutputs["posts"]["getAll"]["postsWithUserdata"];
 
@@ -23,13 +23,13 @@ const PostsList = forwardRef(
   ) => {
     return (
       <>
-        <ul className={cn(className, "h-min")}>
-          {postsWithUser.map((fullPost) => (
-            <li key={fullPost.post.id}>
-              <PostView {...fullPost} />
-            </li>
-          ))}
-        </ul>
+        <List
+          className={cn(className, " h-min")}
+          data={postsWithUser}
+          itemKey="id"
+        >
+          {(fullPost) => <PostView key={fullPost.post.id} {...fullPost} />}
+        </List>
         <div className="h-1 w-full" ref={ref}></div>
         {isFetchingNextPage && (
           <div className="my-10">
