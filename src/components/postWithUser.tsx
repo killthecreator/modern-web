@@ -1,20 +1,20 @@
 import Image from "next/image";
-import { type RouterOutputs } from "~/utils/api";
 import Link from "next/link";
 import dayjs from "dayjs";
 import { cn } from "~/lib/utils";
+import type { PostWithUser } from "~/types";
 
 import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
-
-type PostWithUser =
-  RouterOutputs["posts"]["getAll"]["postsWithUserdata"][number];
 
 const PostView = ({
   post,
   author,
   full,
-}: PostWithUser & { separator?: boolean; full?: boolean }) => {
+}: PostWithUser & {
+  separator?: boolean;
+  full?: boolean;
+}) => {
   return (
     <div
       className={cn(

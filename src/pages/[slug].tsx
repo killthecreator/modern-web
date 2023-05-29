@@ -3,55 +3,14 @@ import Head from "next/head";
 import { api } from "~/utils/api";
 import { PageLayout } from "~/components/layout";
 import Image from "next/image";
-import { LoadingPage } from "~/components/loading";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
-import { useRef, useEffect, useCallback } from "react";
 import PostsList from "~/components/postsList";
+import { useGetPostsByUser } from "~/hooks";
 
 const ProfilePosts = ({ userId }: { userId: string }) => {
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    api.posts.getPostsByUserId.useInfiniteQuery(
-      { userId },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-      }
-    );
+  const queryResult = useGetPostsByUser(userId);
 
-  const loadTrigger = useRef<HTMLDivElement>(null);
-
-  const loadMorePosts = useCallback(async () => {
-    await fetchNextPage();
-  }, [fetchNextPage]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry && entry.isIntersecting && hasNextPage && !isLoading) {
-        void loadMorePosts();
-      }
-    });
-    if (loadTrigger.current) {
-      observer.observe(loadTrigger.current);
-    }
-    return () => {
-      observer.disconnect();
-    };
-  }, [isLoading, hasNextPage, loadMorePosts]);
-
-  if (isLoading) return <LoadingPage />;
-  if (!data) return <p>Opps... Something went wrong</p>;
-
-  const curLoadedPosts = [
-    ...data.pages.map((page) => page.postsWithUserdata),
-  ].flat();
-
-  return (
-    <PostsList
-      className="mt-[280px]"
-      postsWithUser={curLoadedPosts}
-      isFetchingNextPage={isFetchingNextPage}
-      ref={loadTrigger}
-    />
-  );
+  return <PostsList {...queryResult} />;
 };
 
 const profilePicSize = 128;

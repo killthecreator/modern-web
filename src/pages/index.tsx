@@ -3,7 +3,7 @@ import Head from "next/head";
 import { SignInButton, useUser } from "@clerk/nextjs";
 
 import Image from "next/image";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState } from "react";
 
 import { api } from "~/utils/api";
 import { LoadingPage } from "~/components/loading";
@@ -21,6 +21,7 @@ import { Send } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
 import PostsList from "~/components/postsList";
+import { useGetAllPosts } from "~/hooks";
 
 const PostSearcher = () => {
   type SearchFormData = { search: string };
@@ -134,23 +135,8 @@ const CreatePostWizard = () => {
 };
 
 const Feed = () => {
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    api.posts.getAll.useInfiniteQuery(
-      {},
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-      }
-    );
-
-  return (
-    <PostsList
-      data={data}
-      fetchNextPage={fetchNextPage}
-      isFetchingNextPage={isFetchingNextPage}
-      isLoading={isLoading}
-      hasNextPage={hasNextPage}
-    />
-  );
+  const queryResult = useGetAllPosts();
+  return <PostsList {...queryResult} />;
 };
 
 const Home: NextPage = () => {

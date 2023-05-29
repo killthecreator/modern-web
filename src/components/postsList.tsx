@@ -1,27 +1,15 @@
-import { type RouterOutputs } from "~/utils/api";
 import PostView from "./postWithUser";
 import { cn } from "~/lib/utils";
 import { LoadingPage } from "./loading";
+import type { PostsWithUser } from "~/types";
 
 import List from "rc-virtual-list";
-import { useEffect, useCallback, useState } from "react";
-import type {
-  InfiniteData,
-  FetchNextPageOptions,
-  InfiniteQueryObserverResult,
-} from "@tanstack/react-query";
+import { useEffect, useCallback, useState, useRef } from "react";
+import type { useInfiniteQuery } from "@tanstack/react-query";
 
-type PostsWithUser = RouterOutputs["posts"]["getAll"];
-
-interface PostsListProps {
-  data: InfiniteData<PostsWithUser> | undefined;
-  isLoading: boolean;
-  hasNextPage: boolean | undefined;
-  isFetchingNextPage: boolean;
-  fetchNextPage: (
-    options?: FetchNextPageOptions | undefined
-  ) => Promise<InfiniteQueryObserverResult<PostsWithUser>>;
-}
+type UseTRPCInfiniteQueryResult = ReturnType<
+  typeof useInfiniteQuery<PostsWithUser>
+>;
 
 const PostsList = ({
   data,
@@ -29,7 +17,7 @@ const PostsList = ({
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
-}: PostsListProps) => {
+}: UseTRPCInfiniteQueryResult) => {
   const loadMorePosts = useCallback(async () => {
     await fetchNextPage();
   }, [fetchNextPage]);
@@ -41,7 +29,7 @@ const PostsList = ({
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry && entry.isIntersecting && hasNextPage && !isLoading) {
+      if (entry && entry.isIntersecting && hasNextPage) {
         void loadMorePosts();
       }
     });
@@ -51,7 +39,7 @@ const PostsList = ({
     return () => {
       observer.disconnect();
     };
-  }, [isLoading, hasNextPage, loadMorePosts, domNode, isFetchingNextPage]);
+  }, [hasNextPage, loadMorePosts, domNode]);
 
   if (isLoading) return <LoadingPage />;
   if (!data) return <p>Opps... Something went wrong</p>;
@@ -72,23 +60,15 @@ const PostsList = ({
         {(fullPost, index) => {
           return (
             <>
-              {index === 0 && <div className="h-[200px] w-full"></div>}
-              <>
-                <PostView key={fullPost.post.id} {...fullPost} />
-                {index === curLoadedPosts.length - 1 && (
-                  <>
-                    <div
-                      className="absolute bottom-0 h-1 w-full"
-                      ref={onRefChange}
-                    ></div>
-                    {isFetchingNextPage && (
-                      <div className="my-10">
-                        <LoadingPage />
-                      </div>
-                    )}
-                  </>
-                )}
-              </>
+              {index === 0 && <div className="h-[200px]"></div>}
+              <PostView key={fullPost.post.id} {...fullPost} />
+              {index === curLoadedPosts.length - 1 && (
+                <>
+                  <div className="h-16 w-full" ref={onRefChange}>
+                    {hasNextPage && isFetchingNextPage && <LoadingPage />}
+                  </div>
+                </>
+              )}
             </>
           );
         }}
