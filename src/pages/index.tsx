@@ -142,39 +142,13 @@ const Feed = () => {
       }
     );
 
-  const loadTrigger = useRef<HTMLDivElement>(null);
-
-  const loadMorePosts = useCallback(async () => {
-    await fetchNextPage();
-  }, [fetchNextPage]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry && entry.isIntersecting && hasNextPage && !isLoading) {
-        void loadMorePosts();
-      }
-    });
-    if (loadTrigger.current) {
-      observer.observe(loadTrigger.current);
-    }
-    return () => {
-      observer.disconnect();
-    };
-  }, [isLoading, hasNextPage, loadMorePosts]);
-
-  if (isLoading) return <LoadingPage />;
-  if (!data) return <p>Opps... Something went wrong</p>;
-
-  const curLoadedPosts = [...data.pages.map((page) => page.postsWithUserdata)]
-    .flat()
-    .slice(-11);
-
   return (
     <PostsList
-      postsWithUser={curLoadedPosts}
-      className="mt-[200px]"
+      data={data}
+      fetchNextPage={fetchNextPage}
       isFetchingNextPage={isFetchingNextPage}
-      ref={loadTrigger}
+      isLoading={isLoading}
+      hasNextPage={hasNextPage}
     />
   );
 };
