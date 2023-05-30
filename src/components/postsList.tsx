@@ -6,7 +6,7 @@ import { FixedSizeList as List } from "react-window";
 import { useEffect, useCallback, useState } from "react";
 import type { useInfiniteQuery } from "@tanstack/react-query";
 import AutoSizer from "react-virtualized-auto-sizer";
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
 
 type UseTRPCInfiniteQueryResult = ReturnType<
   typeof useInfiniteQuery<PostsWithUser>
@@ -31,8 +31,8 @@ const Row = ({
     <div style={style}>
       {index !== curLoadedPosts.length - 1 || !hasNextPage ? (
         <PostView
-          key={curLoadedPosts[index].post.id}
-          {...curLoadedPosts[index]}
+          key={curLoadedPosts[index]!.post.id}
+          {...curLoadedPosts[index]!}
         />
       ) : (
         <div className="h-[88px] w-full" ref={onRefChange}>
