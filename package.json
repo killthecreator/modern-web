@@ -33,6 +33,8 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.43.9",
+    "react-virtualized-auto-sizer": "^1.0.19",
+    "react-window": "^1.8.9",
     "superjson": "1.12.2",
     "tailwindcss-animate": "^1.0.5",
     "zod": "^3.21.4"

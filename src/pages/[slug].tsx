@@ -27,7 +27,7 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
         <title>{data.username}</title>
       </Head>
       <PageLayout>
-        <div className="fixed z-10 w-full bg-white/95 shadow-md md:max-w-2xl">
+        <div className="w-full bg-white/95 shadow-md md:max-w-2xl">
           <div className="relative h-36 bg-slate-600">
             <Image
               className="absolute bottom-0 left-0 ml-4 translate-y-1/2 rounded-full border-2 border-black"

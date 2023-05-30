@@ -1,21 +1,51 @@
 import PostView from "./postWithUser";
-import { cn } from "~/lib/utils";
 import { LoadingPage } from "./loading";
 import type { PostsWithUser } from "~/types";
 
-import List from "rc-virtual-list";
-import { useEffect, useCallback, useState, useRef } from "react";
+import { FixedSizeList as List } from "react-window";
+import { useEffect, useCallback, useState } from "react";
 import type { useInfiniteQuery } from "@tanstack/react-query";
+import AutoSizer from "react-virtualized-auto-sizer";
+import { CSSProperties } from "react";
 
 type UseTRPCInfiniteQueryResult = ReturnType<
   typeof useInfiniteQuery<PostsWithUser>
 >;
 
+const Row = ({
+  data,
+  index,
+  style,
+}: {
+  data: {
+    curLoadedPosts: PostsWithUser["postsWithUserdata"];
+    onRefChange: (node: HTMLDivElement) => void;
+    hasNextPage: boolean | undefined;
+  };
+  index: number;
+  style: CSSProperties | undefined;
+}) => {
+  const { curLoadedPosts, onRefChange, hasNextPage } = data;
+
+  return (
+    <div style={style}>
+      {index !== curLoadedPosts.length - 1 || !hasNextPage ? (
+        <PostView
+          key={curLoadedPosts[index].post.id}
+          {...curLoadedPosts[index]}
+        />
+      ) : (
+        <div className="h-[88px] w-full" ref={onRefChange}>
+          <LoadingPage />
+        </div>
+      )}
+    </div>
+  );
+};
 const PostsList = ({
   data,
   isLoading,
   hasNextPage,
-  isFetchingNextPage,
   fetchNextPage,
 }: UseTRPCInfiniteQueryResult) => {
   const loadMorePosts = useCallback(async () => {
@@ -49,31 +79,22 @@ const PostsList = ({
   ].flat();
 
   return (
-    <>
-      <List
-        className="relative [&>*]:overflow-hidden [&>.rc-virtual-list-scrollbar]:hidden "
-        height={window.innerHeight}
-        itemHeight={88}
-        data={curLoadedPosts}
-        itemKey="id"
-      >
-        {(fullPost, index) => {
-          return (
-            <>
-              {index === 0 && <div className="h-[200px]"></div>}
-              <PostView key={fullPost.post.id} {...fullPost} />
-              {index === curLoadedPosts.length - 1 && (
-                <>
-                  <div className="h-16 w-full" ref={onRefChange}>
-                    {hasNextPage && isFetchingNextPage && <LoadingPage />}
-                  </div>
-                </>
-              )}
-            </>
-          );
-        }}
-      </List>
-    </>
+    <div>
+      <AutoSizer>
+        {({ height, width }: { height: number; width: number }) => (
+          <List
+            className="scrollbar-hide"
+            height={height}
+            itemData={{ curLoadedPosts, onRefChange, hasNextPage }}
+            itemCount={curLoadedPosts.length}
+            itemSize={88}
+            width={width}
+          >
+            {Row}
+          </List>
+        )}
+      </AutoSizer>
+    </div>
   );
 };
 export default PostsList;

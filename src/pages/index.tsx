@@ -111,7 +111,7 @@ const CreatePostWizard = () => {
         </div>
       )}
       {!isUsername && (
-        <div className="fixed left-0 top-0 z-50 flex h-screen w-screen items-center justify-center bg-background/80 backdrop-blur-sm transition-opacity animate-in fade-in">
+        <div className="flex items-center justify-center bg-background/80 backdrop-blur-sm transition-opacity animate-in fade-in">
           <form onSubmit={handleSubmit(onSubmit)}>
             <Alert
               className="flex max-w-[400px] flex-col 
@@ -147,7 +147,7 @@ const Home: NextPage = () => {
         <title>Homepage</title>
       </Head>
       <PageLayout>
-        <div className="fixed z-10 w-full bg-white/95  md:max-w-2xl">
+        <div className=" bg-white/95 md:max-w-2xl">
           <PostSearcher />
           <div className="flex justify-center rounded-lg p-4 shadow-md">
             {isSignedIn ? (
