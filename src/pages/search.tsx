@@ -8,6 +8,7 @@ import { useGetPostsBySearch } from "~/hooks";
 
 const SearchPage: NextPage<{ content: string }> = ({ content }) => {
   const queryResult = useGetPostsBySearch(content);
+  console.log(queryResult.data);
   return (
     <>
       <Head>
@@ -23,6 +24,7 @@ const SearchPage: NextPage<{ content: string }> = ({ content }) => {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const ssg = generateSSGHelper();
   const content = context.query.result;
+
   if (typeof content !== "string") {
     throw new Error("no content");
   }

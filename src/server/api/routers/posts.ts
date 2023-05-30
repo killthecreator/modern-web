@@ -41,6 +41,7 @@ export const postsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const { cursor } = input;
       const limit = 10;
+
       const posts = await ctx.prisma.post.findMany({
         take: limit + 1,
         cursor: cursor ? { id: cursor } : undefined,

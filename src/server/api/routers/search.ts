@@ -7,11 +7,13 @@ export const searchRouter = createTRPCRouter({
   getPostsByContent: publicProcedure
     .input(z.object({ content: z.string(), cursor: z.string().nullish() }))
     .query(async ({ ctx, input }) => {
-      const { cursor } = input;
+      const { cursor, content } = input;
       const limit = 10;
+
       const posts = await ctx.prisma.post.findMany({
         take: limit + 1,
-        where: { content: { contains: input.content } },
+        where: { content: { contains: content } },
+        cursor: cursor ? { id: cursor } : undefined,
         orderBy: {
           createdAt: "desc",
         },

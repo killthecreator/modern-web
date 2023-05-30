@@ -79,7 +79,7 @@ const PostsList = ({
   ].flat();
 
   return (
-    <div>
+    <div className="h-full">
       <AutoSizer>
         {({ height, width }: { height: number; width: number }) => (
           <List

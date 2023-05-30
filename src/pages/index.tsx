@@ -136,6 +136,7 @@ const CreatePostWizard = () => {
 
 const Feed = () => {
   const queryResult = useGetAllPosts();
+  console.log(queryResult.data);
   return <PostsList {...queryResult} />;
 };
 
