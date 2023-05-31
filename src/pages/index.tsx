@@ -35,7 +35,7 @@ const PostSearcher = () => {
 
   return (
     <form
-      className="flex w-full items-center gap-3 p-4 shadow"
+      className="flex w-full items-center gap-3 p-3 shadow sm:p-4"
       onSubmit={handleSubmit(onSubmit)}
     >
       <Input {...register("search")} placeholder="Search for posts" />
@@ -166,7 +166,7 @@ const Home: NextPage = () => {
       <PageLayout>
         <div className=" bg-white/95 md:max-w-2xl">
           <PostSearcher />
-          <div className="flex justify-center rounded-lg p-4 shadow-md">
+          <div className="flex justify-center rounded-lg p-3 shadow-md sm:p-4">
             {isSignedIn ? (
               <CreatePostWizard />
             ) : (

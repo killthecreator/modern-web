@@ -1,7 +1,14 @@
-import { type CSSProperties, useCallback, useEffect, useState } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import type { useInfiniteQuery } from "@tanstack/react-query";
+import { ChevronUp } from "lucide-react";
 
 import { LoadingPage } from "./loading";
 import PostView from "./postWithUser";
@@ -60,6 +67,7 @@ const PostsList = ({
     refetchInterval: 30 * 1000,
   });
 
+  const listRef = useRef<List>(null);
   const [newPosts, setNewPosts] = useState({ data: 0, triggered: false });
 
   useEffect(() => {
@@ -94,6 +102,12 @@ const PostsList = ({
     ...data.pages.map((page) => page.postsWithUserdata),
   ].flat();
 
+  const scrollToTop = () => {
+    if (listRef.current) {
+      listRef.current.scrollTo(0);
+    }
+  };
+
   return (
     <div className="relative h-full border-x-2">
       {a && a !== newPosts.data && newPosts.data !== 0 && (
@@ -117,11 +131,18 @@ const PostsList = ({
             itemCount={curLoadedPosts.length}
             itemSize={window.innerWidth >= 640 ? 88 : 68}
             width={width}
+            ref={listRef}
           >
             {Row}
           </List>
         )}
       </AutoSizer>
+      <Button
+        className="fixed bottom-4 right-3 rounded-full p-2"
+        onClick={scrollToTop}
+      >
+        <ChevronUp />
+      </Button>
     </div>
   );
 };
