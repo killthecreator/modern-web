@@ -84,7 +84,7 @@ const CreatePostWizard = () => {
         <Image
           src={user.profileImageUrl}
           alt="user-image"
-          className="rounded-full"
+          className="h-[40px] w-[40px] rounded-full sm:h-[56px] sm:w-[56px]"
           width="56"
           height="56"
         />
@@ -93,7 +93,7 @@ const CreatePostWizard = () => {
         <Textarea
           placeholder="Type something!"
           className={cn(
-            "scrollbar-hide bg-transparent text-slate-950 outline-none",
+            "scrollbar-hide max-h-[220px] bg-transparent text-slate-950 outline-none md:max-h-[150px]",
             inputVal.length > maxInputVal &&
               "outline-red-300 focus-visible:outline-red-300"
           )}
@@ -113,12 +113,12 @@ const CreatePostWizard = () => {
 
       {!isPosting ? (
         <Button
-          className="flex items-center gap-2"
+          className="flex items-center gap-1 sm:gap-2"
           onClick={() => mutate({ content: inputVal })}
           disabled={!inputVal || inputVal.length > maxInputVal}
         >
-          <Send />
-          <span>Post</span>
+          <Send className="w-4 sm:w-auto" />
+          <span className="text-xs sm:text-base">Post</span>
         </Button>
       ) : (
         <div className="w-[125px]">

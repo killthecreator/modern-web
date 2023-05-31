@@ -1,12 +1,4 @@
-import {
-  type CSSProperties,
-  useCallback,
-  useEffect,
-  useMemo,
-  useReducer,
-  useRef,
-  useState,
-} from "react";
+import { type CSSProperties, useCallback, useEffect, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import type { useInfiniteQuery } from "@tanstack/react-query";
@@ -45,7 +37,7 @@ const Row = ({
           {...curLoadedPosts[index]!}
         />
       ) : (
-        <div className="h-[88px] w-full" ref={onRefChange}>
+        <div className="h-[68px] w-full sm:h-[88px]" ref={onRefChange}>
           <LoadingPage />
         </div>
       )}
@@ -65,7 +57,7 @@ const PostsList = ({
   }, [fetchNextPage]);
 
   const { data: a } = api.posts.getNumberOfNewPosts.useQuery(undefined, {
-    refetchInterval: 5000,
+    refetchInterval: 30 * 1000,
   });
 
   const [newPosts, setNewPosts] = useState({ data: 0, triggered: false });
@@ -106,17 +98,16 @@ const PostsList = ({
     <div className="relative h-full border-x-2">
       {a && a !== newPosts.data && newPosts.data !== 0 && (
         <Button
-          variant="ghost"
-          className="absolute z-10 flex h-16 w-full cursor-pointer items-center justify-center rounded-b-md border-y bg-white text-xl shadow-md"
+          variant="secondary"
+          className="absolute z-10 flex h-16 w-full cursor-pointer items-center justify-center rounded-b-md border-y bg-white/50 text-xl shadow-md"
           onClick={async () => {
             setNewPosts({ data: 0, triggered: false });
             await refetch();
           }}
         >
-          {`${a ? a - newPosts.data : 0} new posts`}
+          {`${a - newPosts.data} new post${a - newPosts.data === 1 ? "" : "s"}`}
         </Button>
       )}
-
       <AutoSizer>
         {({ height, width }: { height: number; width: number }) => (
           <List
@@ -124,7 +115,7 @@ const PostsList = ({
             height={height}
             itemData={{ curLoadedPosts, onRefChange, hasNextPage }}
             itemCount={curLoadedPosts.length}
-            itemSize={88}
+            itemSize={window.innerWidth >= 640 ? 88 : 68}
             width={width}
           >
             {Row}
