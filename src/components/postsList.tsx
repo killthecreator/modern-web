@@ -1,13 +1,22 @@
-import { type CSSProperties,useCallback, useEffect, useState } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import type { useInfiniteQuery } from "@tanstack/react-query";
 
 import { LoadingPage } from "./loading";
 import PostView from "./postWithUser";
+import { Button } from "./ui";
 
-import useStore from "~/store";
 import type { PostsWithUser } from "~/types";
+import { api } from "~/utils/api";
 
 type UseTRPCInfiniteQueryResult = ReturnType<
   typeof useInfiniteQuery<PostsWithUser>
@@ -49,10 +58,23 @@ const PostsList = ({
   isLoading,
   hasNextPage,
   fetchNextPage,
+  refetch,
 }: UseTRPCInfiniteQueryResult) => {
   const loadMorePosts = useCallback(async () => {
     await fetchNextPage();
   }, [fetchNextPage]);
+
+  const { data: a } = api.posts.getNumberOfNewPosts.useQuery(undefined, {
+    refetchInterval: 5000,
+  });
+
+  const [newPosts, setNewPosts] = useState({ data: 0, triggered: false });
+
+  useEffect(() => {
+    if (a && !newPosts.triggered) {
+      setNewPosts({ data: a, triggered: true });
+    }
+  }, [a, setNewPosts, newPosts]);
 
   const [domNode, setDomNode] = useState<HTMLDivElement>();
   const onRefChange = useCallback((node: HTMLDivElement) => {
@@ -73,11 +95,6 @@ const PostsList = ({
     };
   }, [hasNextPage, loadMorePosts, domNode]);
 
-  const curPostsNumber = useStore((state) => state.curPostsNumber);
-  const incrementCurPostsCounter = useStore(
-    (state) => state.incrementCurPostsCounter
-  );
-
   if (isLoading) return <LoadingPage />;
   if (!data) return <p>Opps... Something went wrong</p>;
 
@@ -87,6 +104,19 @@ const PostsList = ({
 
   return (
     <div className="relative h-full border-x-2">
+      {a && a !== newPosts.data && (
+        <Button
+          variant="ghost"
+          className="absolute z-10 flex h-16 w-full cursor-pointer items-center justify-center rounded-b-md border-y bg-white text-xl shadow-md"
+          onClick={async () => {
+            setNewPosts({ data: 0, triggered: false });
+            await refetch();
+          }}
+        >
+          {`${a ? a - newPosts.data : 0} new posts`}
+        </Button>
+      )}
+
       <AutoSizer>
         {({ height, width }: { height: number; width: number }) => (
           <List

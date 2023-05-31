@@ -135,12 +135,12 @@ const CreatePostWizard = () => {
 
 const Feed = () => {
   const queryResult = useGetAllPosts();
-
   return <PostsList {...queryResult} />;
 };
 
 const Home: NextPage = () => {
   const { isSignedIn } = useUser();
+
   return (
     <>
       <Head>

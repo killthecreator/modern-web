@@ -18,6 +18,15 @@ const ratelimit = new Ratelimit({
 });
 
 export const postsRouter = createTRPCRouter({
+  getNumberOfNewPosts: privateProcedure.query(async ({ ctx }) =>
+    ctx.prisma.post.count({
+      where: {
+        NOT: {
+          authorId: ctx.userId,
+        },
+      },
+    })
+  ),
   getPostById: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
