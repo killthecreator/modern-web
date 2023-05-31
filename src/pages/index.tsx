@@ -1,27 +1,26 @@
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { SignInButton, useUser } from "@clerk/nextjs";
+import { Send } from "lucide-react";
 import { type NextPage } from "next";
 import Head from "next/head";
-import { SignInButton, useUser } from "@clerk/nextjs";
-
 import Image from "next/image";
-import { useState } from "react";
+import { useRouter } from "next/router";
 
-import { api } from "~/utils/api";
-import { LoadingPage } from "~/components/loading";
 import { PageLayout } from "~/components/layout";
+import { LoadingPage } from "~/components/loading";
+import PostsList from "~/components/postsList";
 import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
   Button,
+  Input,
   Textarea,
   useToast,
-  Alert,
-  AlertTitle,
-  AlertDescription,
-  Input,
 } from "~/components/ui";
-import { Send } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { useRouter } from "next/router";
-import PostsList from "~/components/postsList";
 import { useGetAllPosts } from "~/hooks";
+import { api } from "~/utils/api";
 
 const PostSearcher = () => {
   type SearchFormData = { search: string };
@@ -136,7 +135,7 @@ const CreatePostWizard = () => {
 
 const Feed = () => {
   const queryResult = useGetAllPosts();
-  console.log(queryResult.data);
+
   return <PostsList {...queryResult} />;
 };
 

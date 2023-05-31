@@ -1,14 +1,14 @@
 import type { GetServerSideProps, NextPage } from "next";
 import Head from "next/head";
-import { PageLayout } from "~/components/layout";
 
-import { generateSSGHelper } from "~/server/helpers/ssgHelper";
+import { PageLayout } from "~/components/layout";
 import PostsList from "~/components/postsList";
 import { useGetPostsBySearch } from "~/hooks";
+import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 
 const SearchPage: NextPage<{ content: string }> = ({ content }) => {
   const queryResult = useGetPostsBySearch(content);
-  console.log(queryResult.data);
+
   return (
     <>
       <Head>

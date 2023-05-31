@@ -1,10 +1,8 @@
 import { clerkClient } from "@clerk/nextjs/server";
-
-import filterUserForClient from "~/server/helpers/filterUserForClient";
-
+import type { Post } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
-import type { Post } from "@prisma/client";
+import filterUserForClient from "~/server/helpers/filterUserForClient";
 
 export const addUserDataToPosts = async (posts: Post[]) => {
   const users = (

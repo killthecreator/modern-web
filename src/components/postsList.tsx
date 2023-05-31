@@ -1,12 +1,13 @@
-import PostView from "./postWithUser";
-import { LoadingPage } from "./loading";
-import type { PostsWithUser } from "~/types";
-
-import { FixedSizeList as List } from "react-window";
-import { useEffect, useCallback, useState } from "react";
-import type { useInfiniteQuery } from "@tanstack/react-query";
+import { type CSSProperties,useCallback, useEffect, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
-import type { CSSProperties } from "react";
+import { FixedSizeList as List } from "react-window";
+import type { useInfiniteQuery } from "@tanstack/react-query";
+
+import { LoadingPage } from "./loading";
+import PostView from "./postWithUser";
+
+import useStore from "~/store";
+import type { PostsWithUser } from "~/types";
 
 type UseTRPCInfiniteQueryResult = ReturnType<
   typeof useInfiniteQuery<PostsWithUser>
@@ -42,6 +43,7 @@ const Row = ({
     </div>
   );
 };
+
 const PostsList = ({
   data,
   isLoading,
@@ -71,6 +73,11 @@ const PostsList = ({
     };
   }, [hasNextPage, loadMorePosts, domNode]);
 
+  const curPostsNumber = useStore((state) => state.curPostsNumber);
+  const incrementCurPostsCounter = useStore(
+    (state) => state.incrementCurPostsCounter
+  );
+
   if (isLoading) return <LoadingPage />;
   if (!data) return <p>Opps... Something went wrong</p>;
 
@@ -79,7 +86,7 @@ const PostsList = ({
   ].flat();
 
   return (
-    <div className="h-full border-x-2">
+    <div className="relative h-full border-x-2">
       <AutoSizer>
         {({ height, width }: { height: number; width: number }) => (
           <List

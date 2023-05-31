@@ -1,11 +1,11 @@
-import { type AppType } from "next/app";
-
-import { api } from "~/utils/api";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Toaster } from "~/components/ui";
+import { type AppType } from "next/app";
 import Head from "next/head";
 
 import "~/styles/globals.css";
+
+import { Toaster } from "~/components/ui";
+import { api } from "~/utils/api";
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (

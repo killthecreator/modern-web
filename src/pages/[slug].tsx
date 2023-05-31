@@ -1,11 +1,12 @@
 import type { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
-import { api } from "~/utils/api";
-import { PageLayout } from "~/components/layout";
 import Image from "next/image";
-import { generateSSGHelper } from "~/server/helpers/ssgHelper";
+
+import { PageLayout } from "~/components/layout";
 import PostsList from "~/components/postsList";
 import { useGetPostsByUser } from "~/hooks";
+import { generateSSGHelper } from "~/server/helpers/ssgHelper";
+import { api } from "~/utils/api";
 
 const ProfilePosts = ({ userId }: { userId: string }) => {
   const queryResult = useGetPostsByUser(userId);
