@@ -59,6 +59,7 @@ const PostsList = ({
   hasNextPage,
   fetchNextPage,
   refetch,
+  isFetching,
 }: UseTRPCInfiniteQueryResult) => {
   const loadMorePosts = useCallback(async () => {
     await fetchNextPage();
@@ -80,6 +81,12 @@ const PostsList = ({
   const onRefChange = useCallback((node: HTMLDivElement) => {
     setDomNode(node);
   }, []);
+
+  useEffect(() => {
+    if (isFetching) {
+      setNewPosts({ data: 0, triggered: false });
+    }
+  }, [isFetching]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
