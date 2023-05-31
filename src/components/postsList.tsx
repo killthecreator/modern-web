@@ -111,7 +111,7 @@ const PostsList = ({
 
   return (
     <div className="relative h-full border-x-2">
-      {a && a !== newPosts.data && (
+      {a && a !== newPosts.data && newPosts.data !== 0 && (
         <Button
           variant="ghost"
           className="absolute z-10 flex h-16 w-full cursor-pointer items-center justify-center rounded-b-md border-y bg-white text-xl shadow-md"

@@ -21,7 +21,9 @@ import {
 } from "~/components/ui";
 import { useGetAllPosts } from "~/hooks";
 import { api } from "~/utils/api";
+import { cn } from "~/lib/utils";
 
+const maxInputVal = 200;
 const PostSearcher = () => {
   type SearchFormData = { search: string };
   const { register, handleSubmit } = useForm<SearchFormData>();
@@ -87,19 +89,33 @@ const CreatePostWizard = () => {
           height="56"
         />
       }
+      <div className="relative grow">
+        <Textarea
+          placeholder="Type something!"
+          className={cn(
+            "scrollbar-hide bg-transparent text-slate-950 outline-none",
+            inputVal.length > maxInputVal &&
+              "outline-red-300 focus-visible:outline-red-300"
+          )}
+          value={inputVal}
+          onChange={(e) => setInputVal(e.target.value)}
+          disabled={isPosting}
+        />
+        <span
+          className={cn(
+            "absolute bottom-1 right-3 text-xs text-slate-300",
+            inputVal.length > maxInputVal && "text-red-300"
+          )}
+        >
+          {maxInputVal - inputVal.length}
+        </span>
+      </div>
 
-      <Textarea
-        placeholder="Type something!"
-        className="grow bg-transparent text-slate-950 outline-none"
-        value={inputVal}
-        onChange={(e) => setInputVal(e.target.value)}
-        disabled={isPosting}
-      />
       {!isPosting ? (
         <Button
           className="flex items-center gap-2"
           onClick={() => mutate({ content: inputVal })}
-          disabled={!inputVal}
+          disabled={!inputVal || inputVal.length > maxInputVal}
         >
           <Send />
           <span>Post</span>
