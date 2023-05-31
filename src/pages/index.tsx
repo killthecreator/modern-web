@@ -20,8 +20,8 @@ import {
   useToast,
 } from "~/components/ui";
 import { useGetAllPosts } from "~/hooks";
-import { api } from "~/utils/api";
 import { cn } from "~/lib/utils";
+import { api } from "~/utils/api";
 
 const maxInputVal = 200;
 const PostSearcher = () => {
@@ -151,6 +151,7 @@ const CreatePostWizard = () => {
 
 const Feed = () => {
   const queryResult = useGetAllPosts();
+
   return <PostsList {...queryResult} />;
 };
 
