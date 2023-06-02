@@ -28,11 +28,11 @@ const List = ({
   data: {
     curLoadedPosts: PostsWithUser["postsWithUserdata"];
     onRefChange: (node: HTMLDivElement) => void;
-
     hasNextPage: boolean | undefined;
+    isRefetching: boolean;
   };
 }) => {
-  const { curLoadedPosts, onRefChange, hasNextPage } = data;
+  const { curLoadedPosts, onRefChange, hasNextPage, isRefetching } = data;
   const parentRef = useRef<HTMLDivElement>(null);
   const scrollingRef = useRef<number>();
 
@@ -66,10 +66,16 @@ const List = ({
 
   const rowVirtualizer = useVirtualizer({
     count: curLoadedPosts.length,
-    getScrollElement: () => parentRef.current!,
+    getScrollElement: () => parentRef.current,
     estimateSize: () => (window.innerWidth >= 640 ? 88 : 68),
     scrollToFn,
   });
+
+  useEffect(() => {
+    if (isRefetching) {
+      rowVirtualizer.scrollToIndex(0);
+    }
+  }, [isRefetching, rowVirtualizer]);
 
   return (
     <div ref={parentRef} className="scrollbar-hide h-full overflow-auto">
@@ -77,7 +83,7 @@ const List = ({
         {rowVirtualizer.getVirtualItems().map((virtualItem) => (
           <li
             key={curLoadedPosts[virtualItem.index]!.post.id}
-            className={`absolute left-0 top-0 w-full h-[${virtualItem.size}px] translate-y-[${virtualItem.start}px]`}
+            className={`absolute left-0 top-0 w-full h-[${virtualItem.size}px]`}
             style={{
               transform: `translateY(${virtualItem.start}px)`,
             }}
@@ -108,6 +114,7 @@ const PostsList = ({
   hasNextPage,
   fetchNextPage,
   refetch,
+  isRefetching,
 }: UseTRPCInfiniteQueryResult) => {
   const loadMorePosts = useCallback(async () => {
     await fetchNextPage();
@@ -165,7 +172,7 @@ const PostsList = ({
           {`${a - newPosts.data} new post${a - newPosts.data === 1 ? "" : "s"}`}
         </Button>
       )}
-      <List data={{ curLoadedPosts, onRefChange, hasNextPage }} />
+      <List data={{ curLoadedPosts, onRefChange, hasNextPage, isRefetching }} />
     </div>
   );
 };
