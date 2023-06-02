@@ -1,13 +1,10 @@
-import {
-  type CSSProperties,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import AutoSizer from "react-virtualized-auto-sizer";
-import { FixedSizeList as List } from "react-window";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { useInfiniteQuery } from "@tanstack/react-query";
+import {
+  elementScroll,
+  useVirtualizer,
+  type VirtualizerOptions,
+} from "@tanstack/react-virtual";
 import { ChevronUp } from "lucide-react";
 
 import { LoadingPage } from "./loading";
@@ -17,37 +14,90 @@ import { Button } from "./ui";
 import type { PostsWithUser } from "~/types";
 import { api } from "~/utils/api";
 
+function easeInOutQuint(t: number) {
+  return t < 0.5 ? 16 * t * t * t * t * t : 1 + 16 * --t * t * t * t * t;
+}
+
 type UseTRPCInfiniteQueryResult = ReturnType<
   typeof useInfiniteQuery<PostsWithUser>
 >;
 
-const Row = ({
+const List = ({
   data,
-  index,
-  style,
 }: {
   data: {
     curLoadedPosts: PostsWithUser["postsWithUserdata"];
     onRefChange: (node: HTMLDivElement) => void;
+
     hasNextPage: boolean | undefined;
   };
-  index: number;
-  style: CSSProperties | undefined;
 }) => {
   const { curLoadedPosts, onRefChange, hasNextPage } = data;
+  const parentRef = useRef<HTMLDivElement>(null);
+  const scrollingRef = useRef<number>();
+
+  const scrollToFn: VirtualizerOptions<
+    HTMLDivElement,
+    HTMLLIElement
+  >["scrollToFn"] = useCallback((offset, canSmooth, instance) => {
+    if (parentRef.current) {
+      const duration = 1000;
+      const start = parentRef.current.scrollTop;
+      const startTime = (scrollingRef.current = Date.now());
+
+      const run = () => {
+        if (scrollingRef.current !== startTime) return;
+        const now = Date.now();
+        const elapsed = now - startTime;
+        const progress = easeInOutQuint(Math.min(elapsed / duration, 1));
+        const interpolated = start + (offset - start) * progress;
+
+        if (elapsed < duration) {
+          elementScroll(interpolated, canSmooth, instance);
+          requestAnimationFrame(run);
+        } else {
+          elementScroll(interpolated, canSmooth, instance);
+        }
+      };
+
+      requestAnimationFrame(run);
+    }
+  }, []);
+
+  const rowVirtualizer = useVirtualizer({
+    count: curLoadedPosts.length,
+    getScrollElement: () => parentRef.current!,
+    estimateSize: () => (window.innerWidth >= 640 ? 88 : 68),
+    scrollToFn,
+  });
 
   return (
-    <div style={style}>
-      {index !== curLoadedPosts.length - 1 || !hasNextPage ? (
-        <PostView
-          key={curLoadedPosts[index]!.post.id}
-          {...curLoadedPosts[index]!}
-        />
-      ) : (
-        <div className="h-[68px] w-full sm:h-[88px]" ref={onRefChange}>
-          <LoadingPage />
-        </div>
-      )}
+    <div ref={parentRef} className="scrollbar-hide h-full overflow-auto">
+      <ul className={`relative w-full h-[${rowVirtualizer.getTotalSize()}px] `}>
+        {rowVirtualizer.getVirtualItems().map((virtualItem) => (
+          <li
+            key={curLoadedPosts[virtualItem.index]!.post.id}
+            className={`absolute left-0 top-0 w-full h-[${virtualItem.size}px] translate-y-[${virtualItem.start}px]`}
+            style={{
+              transform: `translateY(${virtualItem.start}px)`,
+            }}
+          >
+            {virtualItem.index !== curLoadedPosts.length - 1 || !hasNextPage ? (
+              <PostView {...curLoadedPosts[virtualItem.index]!} />
+            ) : (
+              <div className="h-[68px] w-full sm:h-[88px]" ref={onRefChange}>
+                <LoadingPage />
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+      <Button
+        onClick={() => rowVirtualizer.scrollToIndex(0)}
+        className="fixed bottom-4 right-3 rounded-full p-2"
+      >
+        <ChevronUp />
+      </Button>
     </div>
   );
 };
@@ -67,7 +117,6 @@ const PostsList = ({
     refetchInterval: 30 * 1000,
   });
 
-  const listRef = useRef<List>(null);
   const [newPosts, setNewPosts] = useState({ data: 0, triggered: false });
 
   useEffect(() => {
@@ -102,12 +151,6 @@ const PostsList = ({
     ...data.pages.map((page) => page.postsWithUserdata),
   ].flat();
 
-  const scrollToTop = () => {
-    if (listRef.current) {
-      listRef.current.scrollTo(0);
-    }
-  };
-
   return (
     <div className="relative h-full border-x-2">
       {a && a !== newPosts.data && newPosts.data !== 0 && (
@@ -122,27 +165,7 @@ const PostsList = ({
           {`${a - newPosts.data} new post${a - newPosts.data === 1 ? "" : "s"}`}
         </Button>
       )}
-      <AutoSizer>
-        {({ height, width }: { height: number; width: number }) => (
-          <List
-            className="scrollbar-hide"
-            height={height}
-            itemData={{ curLoadedPosts, onRefChange, hasNextPage }}
-            itemCount={curLoadedPosts.length}
-            itemSize={window.innerWidth >= 640 ? 88 : 68}
-            width={width}
-            ref={listRef}
-          >
-            {Row}
-          </List>
-        )}
-      </AutoSizer>
-      <Button
-        className="fixed bottom-4 right-3 rounded-full p-2"
-        onClick={scrollToTop}
-      >
-        <ChevronUp />
-      </Button>
+      <List data={{ curLoadedPosts, onRefChange, hasNextPage }} />
     </div>
   );
 };
