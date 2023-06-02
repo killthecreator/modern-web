@@ -5,11 +5,11 @@ import { Send } from "lucide-react";
 import { type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
-import { useRouter } from "next/router";
 
 import { PageLayout } from "~/components/layout";
 import { LoadingPage } from "~/components/loading";
 import PostsList from "~/components/postsList";
+import PostSearcher from "~/components/postsSearcher";
 import {
   Alert,
   AlertDescription,
@@ -24,25 +24,6 @@ import { cn } from "~/lib/utils";
 import { api } from "~/utils/api";
 
 const maxInputVal = 200;
-const PostSearcher = () => {
-  type SearchFormData = { search: string };
-  const { register, handleSubmit } = useForm<SearchFormData>();
-  const router = useRouter();
-
-  const onSubmit = async ({ search }: SearchFormData) => {
-    await router.push({ pathname: "search", query: { result: search } });
-  };
-
-  return (
-    <form
-      className="flex w-full items-center gap-3 p-3 shadow sm:p-4"
-      onSubmit={handleSubmit(onSubmit)}
-    >
-      <Input {...register("search")} placeholder="Search for posts" />
-      <Button type="submit">Search</Button>
-    </form>
-  );
-};
 
 const CreatePostWizard = () => {
   const { user } = useUser();

@@ -3,6 +3,7 @@ import Head from "next/head";
 
 import { PageLayout } from "~/components/layout";
 import PostsList from "~/components/postsList";
+import PostSearcher from "~/components/postsSearcher";
 import { useGetPostsBySearch } from "~/hooks";
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 
@@ -15,6 +16,7 @@ const SearchPage: NextPage<{ content: string }> = ({ content }) => {
         <title>{content}</title>
       </Head>
       <PageLayout>
+        <PostSearcher inputVal={content} />
         <PostsList {...queryResult} />
       </PageLayout>
     </>
