@@ -78,7 +78,10 @@ const List = ({
   }, [isRefetching, rowVirtualizer]);
 
   return (
-    <div ref={parentRef} className="scrollbar-hide h-full overflow-auto">
+    <div
+      ref={parentRef}
+      className="scrollbar-hide h-full overflow-x-hidden overflow-y-scroll"
+    >
       <ul className={`relative w-full h-[${rowVirtualizer.getTotalSize()}px] `}>
         {rowVirtualizer.getVirtualItems().map((virtualItem) => (
           <li

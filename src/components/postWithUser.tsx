@@ -21,7 +21,7 @@ const PostView = ({
         "grid w-full grid-cols-[max-content,_1fr] items-center gap-3 p-2 sm:p-4",
         full
           ? "absolute left-0 top-0 translate-y-[calc(50vh_-_50%)] shadow-xl"
-          : "relative shadow hover:scale-105"
+          : "relative shadow"
       )}
       key={post.id}
     >
